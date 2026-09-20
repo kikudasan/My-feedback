@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Анонимный опрос</title>
+<style>
+  :root{
+    --bg:#f5f6f8;
+    --card:#ffffff;
+    --text:#1c1f26;
+    --muted:#6b7280;
+    --line:#e3e5ea;
+    --accent:#2f6bff;
+    --accent-soft:#eaf0ff;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    padding:32px 16px 64px;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:16px;
+    line-height:1.5;
+  }
+
+  .wrap{max-width:720px;margin:0 auto;}
+
+  header{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px 28px 24px;
+    margin-bottom:20px;
+  }
+
+  h1{
+    font-size:24px;
+    line-height:1.25;
+    margin:0 0 12px;
+    letter-spacing:-0.02em;
+  }
+
+  .intro{
+    margin:0;
+    color:var(--muted);
+    font-size:15px;
+  }
+
+  .meta{
+    display:inline-block;
+    margin-top:14px;
+    padding:5px 10px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    border-radius:999px;
+    font-size:13px;
+    font-weight:500;
+  }
+
+  .q{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 24px;
+    margin-bottom:14px;
+  }
+
+  .q-title{
+    font-size:16px;
+    font-weight:600;
+    margin:0 0 6px;
+    display:flex;
+    gap:10px;
+  }
+
+  .q-num{
+    color:var(--accent);
+    flex:none;
+  }
+
+  .hint{
+    font-size:13px;
+    color:var(--muted);
+    margin:0 0 14px;
+  }
+
+  /* Шкала 1–5 */
+  .scale{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .scale label{
+    flex:1 1 100px;
+    cursor:pointer;
+  }
+
+  .scale input{position:absolute;opacity:0;pointer-events:none;}
+
+  .scale span{
+    display:block;
+    text-align:center;
+    padding:12px 8px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    font-size:14px;
+    color:var(--muted);
+    background:#fbfbfc;
+    transition:.15s;
+    user-select:none;
+  }
+
+  .scale span b{
+    display:block;
+    font-size:18px;
+    color:var(--text);
+    margin-bottom:2px;
+  }
+
+  .scale label:hover span{border-color:#c7d2fe;}
+
+  .scale input:checked + span{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+
+  .scale input:checked + span b{color:#fff;}
+
+  .scale input:focus-visible + span{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+
+  /* Чекбоксы */
+  .opts{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+
+  @media (max-width:560px){
+    .opts{grid-template-columns:1fr;}
+  }
+
+  .opts label{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:11px 13px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fbfbfc;
+    cursor:pointer;
+    font-size:14.5px;
+    transition:.15s;
+  }
+
+  .opts label:hover{border-color:#c7d2fe;}
+
+  .opts input{
+    margin:2px 0 0;
+    flex:none;
+    width:17px;
+    height:17px;
+    accent-color:var(--accent);
+    cursor:pointer;
+  }
+
+  .opts input:checked ~ span{font-weight:500;}
+
+  .opts label:has(input:checked){
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+
+  textarea{
+    width:100%;
+    min-height:92px;
+    padding:13px 14px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fbfbfc;
+    font:inherit;
+    font-size:15px;
+    color:var(--text);
+    resize:vertical;
+  }
+
+  textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+    background:#fff;
+  }
+
+  .optional{
+    font-weight:400;
+    color:var(--muted);
+    font-size:14px;
+  }
+
+  button{
+    display:block;
+    width:100%;
+    margin-top:22px;
+    padding:16px 24px;
+    border:none;
+    border-radius:12px;
+    background:var(--accent);
+    color:#fff;
+    font:inherit;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.15s;
+  }
+
+  button:hover{background:#1f56d6;}
+
+  button:disabled{
+    background:#9db4e8;
+    cursor:not-allowed;
+  }
+
+  .note{
+    margin:14px 0 0;
+    text-align:center;
+    font-size:13px;
+    color:var(--muted);
+  }
+
+  /* Экран благодарности */
+  .thanks{
+    display:none;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:56px 32px;
+    text-align:center;
+  }
+
+  .thanks h2{
+    margin:0 0 12px;
+    font-size:22px;
+  }
+
+  .thanks p{
+    margin:0 auto;
+    max-width:460px;
+    color:var(--muted);
+    font-size:15px;
+  }
+
+  .thanks .icon{
+    font-size:44px;
+    margin-bottom:16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <form id="survey">
+
+    <header>
+      <h1>Анонимный опрос</h1>
+      <p class="intro">
+        Это анонимный опрос, чтобы я мог скорректировать свой стиль работы.
+        Не указывайте имя, почту, команду или другие данные, по которым вас можно узнать.
+        Мне важна честная обратная связь, а не оценка.
+      </p>
+      <span class="meta">2–3 минуты · без имён и email</span>
+    </header>
+
+    <!-- 1 -->
+    <div class="q">
+      <p class="q-title"><span class="q-num">1.</span> Насколько я помогаю вам делать работу эффективнее?</p>
+      <div class="scale">
+        <label><input type="radio" name="q1" value="1"><span><b>1</b>Скорее мешаю</span></label>
+        <label><input type="radio" name="q1" value="2"><span><b>2</b>Почти не влияю</span></label>
+        <label><input type="radio" name="q1" value="3"><span><b>3</b>Нейтрально</span></label>
+        <label><input type="radio" name="q1" value="4"><span><b>4</b>Помогаю</span></label>
+        <label><input type="radio" name="q1" value="5"><span><b>5</b>Значительно помогаю</span></label>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="q">
+      <p class="q-title"><span class="q-num">2.</span> Что в моих действиях помогает вам работать лучше?</p>
+      <p class="hint">Можно выбрать несколько вариантов.</p>
+      <div class="opts">
+        <label><input type="checkbox" name="q2" value="Ясные цели и приоритеты"><span>Ясные цели и приоритеты</span></label>
+        <label><input type="checkbox" name="q2" value="Понятные критерии качества"><span>Понятные критерии качества</span></label>
+        <label><input type="checkbox" name="q2" value="Своевременная обратная связь"><span>Своевременная обратная связь</span></label>
+        <label><input type="checkbox" name="q2" value="Автономия и доверие"><span>Автономия и доверие</span></label>
+        <label><input type="checkbox" name="q2" value="Поддержка в сложных ситуациях"><span>Поддержка в сложных ситуациях</span></label>
+        <label><input type="checkbox" name="q2" value="Защита от лишних переключений"><span>Защита от лишних переключений</span></label>
+        <label><input type="checkbox" name="q2" value="Быстрые решения"><span>Быстрые решения</span></label>
+        <label><input type="checkbox" name="q2" value="Признание результатов"><span>Признание результатов</span></label>
+        <label><input type="checkbox" name="q2" value="Ничего из перечисленного"><span>Ничего из перечисленного</span></label>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="q">
+      <p class="q-title"><span class="q-num">3.</span> Что в моих действиях мешает вам работать эффективнее?</p>
+      <p class="hint">Можно выбрать несколько вариантов.</p>
+      <div class="opts">
+        <label><input type="checkbox" name="q3" value="Неясные задачи и ожидания"><span>Неясные задачи и ожидания</span></label>
+        <label><input type="checkbox" name="q3" value="Частая смена приоритетов"><span>Частая смена приоритетов</span></label>
+        <label><input type="checkbox" name="q3" value="Микроменеджмент"><span>Микроменеджмент</span></label>
+        <label><input type="checkbox" name="q3" value="Недостаток обратной связи"><span>Недостаток обратной связи</span></label>
+        <label><input type="checkbox" name="q3" value="Избыточная или резкая критика"><span>Избыточная или резкая критика</span></label>
+        <label><input type="checkbox" name="q3" value="Недостаток поддержки"><span>Недостаток поддержки</span></label>
+        <label><input type="checkbox" name="q3" value="Слишком много параллельных задач"><span>Слишком много параллельных задач</span></label>
+        <label><input type="checkbox" name="q3" value="Неравномерная нагрузка"><span>Неравномерная нагрузка</span></label>
+        <label><input type="checkbox" name="q3" value="Ничего существенного"><span>Ничего существенного</span></label>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="q">
+      <p class="q-title"><span class="q-num">4.</span> Насколько безопасно вам давать мне честную обратную связь?</p>
+      <div class="scale">
+        <label><input type="radio" name="q4" value="1"><span><b>1</b>Совершенно небезопасно</span></label>
+        <label><input type="radio" name="q4" value="2"><span><b>2</b>Скорее небезопасно</span></label>
+        <label><input type="radio" name="q4" value="3"><span><b>3</b>Нейтрально</span></label>
+        <label><input type="radio" name="q4" value="4"><span><b>4</b>Скорее безопасно</span></label>
+        <label><input type="radio" name="q4" value="5"><span><b>5</b>Полностью безопасно</span></label>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="q">
+      <p class="q-title"><span class="q-num">5.</span> Что мне стоит делать чаще?</p>
+      <p class="hint">Можно выбрать несколько вариантов.</p>
+      <div class="opts">
+        <label><input type="checkbox" name="q5" value="Давать контекст и объяснять «зачем»"><span>Давать контекст и объяснять «зачем»</span></label>
+        <label><input type="checkbox" name="q5" value="Хвалить и признавать вклад"><span>Хвалить и признавать вклад</span></label>
+        <label><input type="checkbox" name="q5" value="Давать развивающую обратную связь"><span>Давать развивающую обратную связь</span></label>
+        <label><input type="checkbox" name="q5" value="Делегировать и доверять"><span>Делегировать и доверять</span></label>
+        <label><input type="checkbox" name="q5" value="Спрашивать мнение команды до решения"><span>Спрашивать мнение команды до решения</span></label>
+        <label><input type="checkbox" name="q5" value="Защищать приоритеты команды"><span>Защищать приоритеты команды</span></label>
+        <label><input type="checkbox" name="q5" value="Проводить регулярные 1:1"><span>Проводить регулярные 1:1</span></label>
+        <label><input type="checkbox" name="q5" value="Затрудняюсь ответить"><span>Затрудняюсь ответить</span></label>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="q">
+      <p class="q-title"><span class="q-num">6.</span> Что мне стоит делать реже?</p>
+      <p class="hint">Можно выбрать несколько вариантов.</p>
+      <div class="opts">
+        <label><input type="checkbox" name="q6" value="Менять приоритеты без объяснения"><span>Менять приоритеты без объяснения</span></label>
+        <label><input type="checkbox" name="q6" value="Давать слишком много правок"><span>Давать слишком много правок</span></label>
+        <label><input type="checkbox" name="q6" value="Подключаться в задачи без запроса"><span>Подключаться в задачи без запроса</span></label>
+        <label><input type="checkbox" name="q6" value="Критиковать при других"><span>Критиковать при других</span></label>
+        <label><input type="checkbox" name="q6" value="Брать задачи на себя вместо делегирования"><span>Брать задачи на себя вместо делегирования</span></label>
+        <label><input type="checkbox" name="q6" value="Откладывать обратную связь"><span>Откладывать обратную связь</span></label>
+        <label><input type="checkbox" name="q6" value="Затрудняюсь ответить"><span>Затрудняюсь ответить</span></label>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="q">
+      <p class="q-title"><span class="q-num">7.</span> Что одно я могу изменить в своих действиях, чтобы вам работалось лучше? <span class="optional">— необязательно</span></p>
+      <p class="hint">Без имён и примеров, которые могут вас идентифицировать.</p>
+      <textarea name="q7" placeholder="Короткий ответ…"></textarea>
+    </div>
+
+    <button type="submit" id="submitBtn">Отправить ответы</button>
+    <p class="note">Ответы передаются анонимно и попадают в сводную таблицу.</p>
+
+  </form>
+
+  <div class="thanks" id="thanks">
+    <div class="icon">✅</div>
+    <h2>Спасибо за обратную связь</h2>
+    <p>
+      Ответы приняты. Я посмотрю на общие паттерны, а не на отдельные ответы,
+      и через 2–4 недели расскажу, что услышал и что изменю.
+    </p>
+  </div>
+
+</div>
+
+<script>
+  // ⚠️ ЗАМЕНИТЕ ЭТУ ССЫЛКУ на URL вашего веб-приложения Google Apps Script (заканчивается на /exec)
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzcmPYcoPo3ARwZg7GGCLe7hNQQaFePg_GzeHOrKGg1OMPRcnqBciidVsh-CZvyvBa/exec';
+
+  document.getElementById('survey').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const form = this;
+    const btn = document.getElementById('submitBtn');
+
+    // Блокируем кнопку на время отправки
+    btn.disabled = true;
+    btn.textContent = 'Отправка…';
+
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+
+    // Собираем все значения. Для чекбоксов (несколько значений с одним name) добавляем каждое отдельно.
+    for (const [key, value] of formData.entries()) {
+      params.append(key, value);
+    }
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Google Apps Script не отдаёт CORS-заголовки, поэтому так
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+      },
+      body: params.toString()
+    })
+    .then(() => {
+      // При mode: 'no-cors' ответ непрозрачный, но если запрос ушёл — считаем успехом
+      form.style.display = 'none';
+      const thanks = document.getElementById('thanks');
+      thanks.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    })
+    .catch(error => {
+      console.error('Ошибка при отправке:', error);
+      btn.disabled = false;
+      btn.textContent = 'Отправить ответы';
+      alert('Не удалось отправить ответы. Проверьте интернет и попробуйте ещё раз.');
+    });
+  });
+</script>
+
+</body>
+</html>
